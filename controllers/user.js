@@ -73,7 +73,7 @@ let User = {
     login(req,res){
         let username =  req.body.username;
         let password  =req.body.password;
-
+        let errors={};
         userModel.findOne({username:username}).then(user=>{
             //errors
             if (!user) {
@@ -93,7 +93,13 @@ let User = {
                         if(err) res.status(500).json({message:"Error al recuperar token",error:err});
                         res.json({
                             success:true,
-                            token: `JWT ${token}`
+                            token: `${token}`,
+                            user:{
+                                'username':user.username,
+                                'nombres':user.username,
+                                'apellidos':user.apellidos,
+                                'email':user.email,
+                            }
                         });
 
 

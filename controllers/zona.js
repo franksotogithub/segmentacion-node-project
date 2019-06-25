@@ -27,14 +27,18 @@ let Zona = {
 
 
         if(codigo!=='00'){
-            match[amb.codigo]= {'$in' : [codigo]}
+            //let ambc=ambitos.find(x=>x.ambito==ambito);
+            //match[amb.codigo]= {'$in' : [codigo]}
+            //match[amb.codigo]= {'$regex' : `/${codigo}$/` }
+
+            (codigo.length==2)? match['ccdd']= {'$in' : [codigo]}:(codigo.length==4)? match['ccpp']= {'$in' : [codigo]}:(codigo.length==6)? match['ccdi']= {'$in' : [codigo]}:true;
         }
 
 
         let groupBy={
             _id:{'descripcion':'$'+amb.descripcion ,"codigo":'$'+amb.codigo },
-            "cant_zonas_marco":{"$sum": 1 },
-            "cant_zonas_segm":{"$sum": "$flag_proc_segm" }
+            "cant_zona_marco":{"$sum": 1 },
+            "cant_zona_segm":{"$sum": "$flag_proc_segm" }
         }
 
         zonaModel.aggregate([
@@ -43,10 +47,10 @@ let Zona = {
             { "$project": {
                     "codigo":'$_id.codigo',
                     "descripcion":'$_id.descripcion',
-                    "cant_zonas_marco": 1,
-                    "cant_zonas_segm": 1,
+                    "cant_zona_marco": 1,
+                    "cant_zona_segm": 1,
                     "porcent_segm":
-                        { "$multiply": [ { "$divide": [ "$cant_zonas_marco", "$cant_zonas_segm"] }, 100 ] }
+                        { "$multiply": [ { "$divide": [ "$cant_zona_marco", "$cant_zona_segm"] }, 100 ] }
 
                 }
             }
