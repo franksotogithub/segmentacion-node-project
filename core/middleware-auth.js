@@ -10,7 +10,7 @@ let MiddlewareAuth = {
                 // Remove JWT from string
                 token = token.slice(4, token.length);
 
-                jwt.verify(token, config.jwt_token.secret_key, (err, decoded) => {
+                jwt.verify(token, config.jwt_token.secret_key,{maxAge:config.jwt_token.expire_time } , (err, decoded) => {
                     if (err) {
                         return res.status(401).json({
                             success: false,

@@ -10,5 +10,6 @@ config.mongodb = {
 };
 
 config.jwt_token={
-    secret_key: 'worldisfullofdevelopers'
+    secret_key: 'worldisfullofdevelopers',
+    expire_time:'360000',
 };

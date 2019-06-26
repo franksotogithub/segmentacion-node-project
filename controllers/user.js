@@ -88,7 +88,7 @@ let User = {
                         id:user._id,
                         name:user.username
                     }
-                    jwt.sign(payload,config.jwt_token.secret_key,{expiresIn:36000},
+                    jwt.sign(payload,config.jwt_token.secret_key,{expiresIn:config.jwt_token.expire_time},
                         (err,token)=>{
                         if(err) res.status(500).json({message:"Error al recuperar token",error:err});
                         res.json({
