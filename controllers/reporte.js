@@ -1,5 +1,7 @@
 const zonaModel = require('../models/zona');
 const aeuModel = require('../models/aeu');
+const seccionModel = require('../models/seccion');
+const subzonaModel = require('../models/subzona');
 const bcrypt = require('bcrypt');
 let jwt = require('jsonwebtoken');
 let config = require('../config');
@@ -16,6 +18,18 @@ const arrayGroupBy =[
     'idsubzona','seccion','aeu'
 ];
 
+
+
+const displayedColumns = [
+    {data: 'idsubzona', label: 'SUBZONA'},
+    {data: 'seccion', label: 'SECCION'},
+    {data: 'aeu', label: 'AEU'},
+];
+
+
+const columnsToDisplay = displayedColumns.map(x => {
+    return x.data
+});
 
 let Reporte = {
     reporte_avance_segm(req,res){
@@ -67,7 +81,7 @@ let Reporte = {
     reporte_croquis_listado(req,res){
         let ambito=!(req.params.ambito)?0:req.params.ambito;
         let codigo=!(req.params.codigo)?'00':req.params.codigo;
-
+        let model;
         let match={
             'idzona':codigo
         }
@@ -81,17 +95,71 @@ let Reporte = {
 
         let sort={};
 
-        arrayGroupBy.forEach((groupColum,index)=>{
+        /*let project={
+            "ccdi":1,
+            "zona":1,
+            "ruta_web": {'$concat': ["$ccdi","/","$zona",""]}
+        };*/
+
+
+        /*"$project": {
+            "codigo":'$_id.codigo',
+                "descripcion":'$_id.descripcion',
+                "cant_zona_marco": 1,
+                "cant_zona_segm": 1,
+                "porcent_segm":
+            { "$multiply": [ { "$divide": [ "$cant_zona_marco", "$cant_zona_segm"] }, 100 ] }
+
+        }*/
+
+        /*project['ruta_web']=*/
+
+        /*arrayGroupBy.forEach((groupColum,index)=>{
             if(index<=ambito){
                 groupBy._id[groupColum]='$'+groupColum;
-                sort[`_id.${groupColum}`]=1;
+                //sort[`_id.${groupColum}`]=1;
+                sort[groupColum]=1;
+                project[groupColum]=`$_id.${groupColum}`;
+
+            }
+            else {
+                return;
+            }
+        });
+*/
+
+        (ambito==0)? model=subzonaModel:(ambito==1)? model=seccionModel:(ambito==2)? model=aeuModel:true;
+
+        let fields={};
+        let displayedColumnsx=[];
+        let columnsToDisplayx=[];
+
+        displayedColumns.forEach((column,index)=>{
+            if(index<=ambito){
+                fields[column.data]=1,
+                displayedColumnsx.push(column);
             }
             else {
                 return;
             }
         });
 
-        aeuModel.aggregate([
+        columnsToDisplayx= displayedColumnsx.map(x => {
+            return x.data
+        });
+        fields['ruta_web'] = 1;
+        fields['cant_viv'] = 1;
+
+        //let displayedColumns=displayedColumns
+
+
+
+        model.find(match,fields,(err, result)=> {
+            if(err) res.status(500).json({message:"Error al recuperar data",error:err});
+            res.json({data:result,displayedColumns:displayedColumnsx,columnsToDisplay:columnsToDisplayx});
+
+        });
+        /*aeuModel.aggregate([
             {"$match":match},
             {"$group" : groupBy},
             { "$sort" :  sort}
@@ -101,7 +169,9 @@ let Reporte = {
             if(err) res.status(500).json({message:"Error al recuperar data",error:err});
             res.json(data);
 
-        })
+        })*/
+
+
 
     }
 

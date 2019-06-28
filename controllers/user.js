@@ -49,22 +49,6 @@ let User = {
                 });
 
 
-
-                /*bcrypt.genSalt(10,(err,salt)=>{
-                   if (err) throw err;
-                   bcrypt.hash(newUser.password,salt,(err,hash=>{
-                       console.log('hash>>>',hash);
-
-                       if(err) throw err;
-                       newUser.password= hash;
-                       newUser.save().then(
-                           user=>res.json(user)
-                       ).catch(err=>res.status(400).json(err));
-                   }));
-                });*/
-
-
-
             }
 
         });

@@ -12,4 +12,4 @@ const SeccionSchema = new Schema({
     ruta_web: String
 
 });
-module.exports = Seccion = mongoose.model('seccion', SeccionSchema);
+module.exports = Seccion = mongoose.model('seccion', SeccionSchema,'secciones');
