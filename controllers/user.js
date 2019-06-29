@@ -3,9 +3,19 @@ const bcrypt = require('bcrypt');
 let jwt = require('jsonwebtoken');
 let config = require('../config');
 
+const displayedColumnsUsers = [
+    {data: 'username', label: 'USUSARIO'},
+    {data: 'nombres', label: 'NOMBRES'},
+    {data: 'apellidos', label: 'APELLIDOS'},
+];
+
+
+const columnsToDisplayUsers= displayedColumnsUsers.map(x => {
+    return x.data
+});
 
 let User = {
-    register(req,res){
+    create(req,res){
         let email =  req.body.email;
         let username =  req.body.username;
         let password  =req.body.password;
@@ -54,6 +64,7 @@ let User = {
         });
     },
 
+
     login(req,res){
         let username =  req.body.username;
         let password  =req.body.password;
@@ -99,8 +110,45 @@ let User = {
         });
 
 
-    }
+    },
 
+    get(req,res){
+        userModel.find({},(err,users)=>{
+            if (err) throw err;
+            res.status(200).json( {data:users ,displayedColumns:displayedColumnsUsers,columnsToDisplay: columnsToDisplayUsers  } );
+        });
+    },
+
+    getByUsername(req,res){
+        let id=req.params.id;
+        userModel.findOne({_id:id},(err,user)=>{
+            if (err) res.status(500).json({message:"Error al recuperar el usuario",error:err});
+            res.status(200).json(user);
+        });
+    },
+
+
+    update(req,res){
+        let user={
+            nombres:req.body.nombres,
+            apellidos:req.body.apellidos,
+        }
+
+        let id=req.params.id;
+        userModel.findOneAndUpdate({_id: id}, {$set:user},{new:true},(err,user=>{
+          if(err)  res.status(500).json({message:"Error al actualiza el usuario",error:err});
+          res.status(200).json({'message':"Usuario actualizado"});
+        }));
+    },
+
+
+    delete(req,res){
+        let id=req.params.id;
+        userModel.findOneAndDelete({_id: id},(err,user)=>{
+            if(err) res.status(500).json({message:"Error al eliminar el usuario",error:err});
+            res.status(200).json({'message':'Usuario eliminado con exito'});
+        });
+    },
 }
 
 module.exports = User;
