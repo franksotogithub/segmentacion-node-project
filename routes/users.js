@@ -7,15 +7,15 @@ var  middleware = require('../core/middleware-auth');
 
 
 /* GET users listing. */
-router.get('/',function(req, res, next) {
+router.get('/',middleware.checkToken ,function(req, res, next) {
     userController.get(req,res);
 });
 
-router.get('/:id',function(req, res, next) {
-    userController.getByUsername(req,res);
+router.get('/:id',middleware.checkToken ,function(req, res, next) {
+    userController.getById(req,res);
 });
 
-router.put('/:id', middleware.checkToken,function(req, res, next) {
+router.put('/:id',middleware.checkToken ,function(req, res, next) {
     userController.update(req,res);
 });
 
@@ -23,7 +23,7 @@ router.delete('/:id',middleware.checkToken ,function(req, res, next) {
     userController.delete(req,res);
 });
 
-router.post('/',middleware.checkToken, (req, res) => {
+router.post('/', middleware.checkToken ,(req, res) => {
     userController.create(req,res);
 });
 

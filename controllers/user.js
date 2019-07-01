@@ -119,7 +119,7 @@ let User = {
         });
     },
 
-    getByUsername(req,res){
+    getById(req,res){
         let id=req.params.id;
         userModel.findOne({_id:id},(err,user)=>{
             if (err) res.status(500).json({message:"Error al recuperar el usuario",error:err});
@@ -132,13 +132,15 @@ let User = {
         let user={
             nombres:req.body.nombres,
             apellidos:req.body.apellidos,
+            username:req.body.username,
+            email:req.body.email,
         }
 
         let id=req.params.id;
-        userModel.findOneAndUpdate({_id: id}, {$set:user},{new:true},(err,user=>{
+        userModel.findOneAndUpdate({_id: id}, {$set:user},{new:true},(err,user)=>{
           if(err)  res.status(500).json({message:"Error al actualiza el usuario",error:err});
           res.status(200).json({'message':"Usuario actualizado"});
-        }));
+        });
     },
 
 
