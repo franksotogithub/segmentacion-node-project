@@ -72,7 +72,50 @@ let Reporte = {
             ,(err,data)=>{
 
                 if(err) res.status(500).json({message:"Error al recuperar data",error:err});
-                res.json(data);
+
+                //aeuModel
+                aeuModel.aggregate(
+                    [
+                                {"$match":match},
+                                {"$group":{_id:null, "valor":{"$sum":1}}},
+
+                    ] ,
+                    (err,data1)=>{
+                    if(err) res.status(500).json({message:"Error al recuperar data",error:err});
+
+                    let promedios=[];
+                    let el={};
+                     let cant_aeus=0;
+                    if(data1.length>0){
+                        cant_aeus=data1[0].valor;
+                        el.label = 'Cantidad de AEU'
+                        el.valor= cant_aeus;
+                        promedios.push(el);
+                    }
+
+                    aeuModel.aggregate(
+                        [
+                            {"$match":match},
+                            {$group:{ _id:{"cant_viv":"$cant_viv" } ,"valor":{"$sum":1} }},
+                            { "$sort" :  {'_id.cant_viv':-1}}
+                            //{"$sort"}
+
+                        ],
+
+                        (err,data2)=>{
+                            if(err) res.status(500).json({message:"Error al recuperar data",error:err});
+                            let viviendas=[];
+                            data2.forEach( (data,index )=>{
+                                let el={}
+                                el.label=`Area de empadronamiento con  ${data._id.cant_viv} viviendas` ;
+                                el.valor= data.valor;
+                                el.porcent= data.valor/cant_aeus*100;
+                                viviendas.push(el)
+                            });
+                            res.json({reporte:data, estadisticas:{viviendas:viviendas,promedios:promedios } , graficos:{viviendas}});
+                    });
+
+                    });
 
         });
 
@@ -155,6 +198,7 @@ let Reporte = {
 
 
         model.find(match,fields,(err, result)=> {
+
             if(err) res.status(500).json({message:"Error al recuperar data",error:err});
             res.json({data:result,displayedColumns:displayedColumnsx,columnsToDisplay:columnsToDisplayx});
 
