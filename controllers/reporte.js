@@ -97,6 +97,9 @@ let Reporte = {
                         [
                             {"$match":match},
                             {$group:{ _id:{"cant_viv":"$cant_viv" } ,"valor":{"$sum":1} }},
+                            { "$sort" :  {'_id.cant_viv':-1}}
+                            //{"$sort"}
+
                         ],
 
                         (err,data2)=>{
@@ -104,7 +107,7 @@ let Reporte = {
                             let viviendas=[];
                             data2.forEach( (data,index )=>{
                                 let el={}
-                                el.label=data._id.cant_viv;
+                                el.label=`Area de empadronamiento con  ${data._id.cant_viv} viviendas` ;
                                 el.valor= data.valor;
                                 el.porcent= data.valor/cant_aeus*100;
                                 viviendas.push(el)
