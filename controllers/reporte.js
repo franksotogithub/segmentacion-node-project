@@ -97,7 +97,7 @@ let Reporte = {
                         [
                             {"$match":match},
                             {$group:{ _id:{"cant_viv":"$cant_viv" } ,"valor":{"$sum":1} }},
-                            { "$sort" :  {'_id.cant_viv':-1}}
+                            { "$sort" :  {'_id.cant_viv':1}}
                             //{"$sort"}
 
                         ],
@@ -105,14 +105,19 @@ let Reporte = {
                         (err,data2)=>{
                             if(err) res.status(500).json({message:"Error al recuperar data",error:err});
                             let viviendas=[];
+                            let viviendasGraficos=[];
                             data2.forEach( (data,index )=>{
-                                let el={}
+                                let el={},el2={};
                                 el.label=`Area de empadronamiento con  ${data._id.cant_viv} viviendas` ;
                                 el.valor= data.valor;
                                 el.porcent= data.valor/cant_aeus*100;
-                                viviendas.push(el)
+                                el2=Object.assign({}, el);
+                                el2.label=`${data._id.cant_viv} viv`; 
+                                
+                                viviendas.push(el);
+                                viviendasGraficos.push(el2);
                             });
-                            res.json({reporte:data, estadisticas:{viviendas:viviendas,promedios:promedios } , graficos:{viviendas}});
+                            res.json({reporte:data, estadisticas:{viviendas:viviendas,promedios:promedios } , graficos:{grafico1:viviendasGraficos}});
                     });
 
                     });
