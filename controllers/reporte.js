@@ -2,9 +2,7 @@ const zonaModel = require('../models/zona');
 const aeuModel = require('../models/aeu');
 const seccionModel = require('../models/seccion');
 const subzonaModel = require('../models/subzona');
-const bcrypt = require('bcrypt');
-let jwt = require('jsonwebtoken');
-let config = require('../config');
+
 
 const ambitos =[
     { ambito:0,descripcion:'departamento',codigo:'ccdd' },
@@ -62,35 +60,67 @@ let Reporte = {
                     "descripcion":'$_id.descripcion',
                     "cant_zona_marco": 1,
                     "cant_zona_segm": 1,
+
                     "porcent_segm":
-                        { "$multiply": [ { "$divide": [ "$cant_zona_marco", "$cant_zona_segm"] }, 100 ] }
+                        { "$multiply": [ { "$divide": [ "$cant_zona_segm", "$cant_zona_marco"] }, 100 ] }
 
                 }
             }, { "$sort" :  {'codigo':1}}
 
         ]
             ,(err,data)=>{
-
+                console.log('err>>>',err);
+                console.log('data>>>',data);
                 if(err) res.status(500).json({message:"Error al recuperar data",error:err});
 
-                //aeuModel
-                aeuModel.aggregate(
+
+
+                zonaModel.aggregate(
                     [
                                 {"$match":match},
-                                {"$group":{_id:null, "valor":{"$sum":1}}},
+                                {"$group":{_id:null,
+                                        "cant_ae_u":{"$sum":"$cant_ae_u"},
+                                        "cant_secc_u":{"$sum":"$cant_secc_u"},
+                                        "cant_mzs":{"$sum":"$cant_mzs"},
+                                        "cant_viv":{"$sum":"$cant_viv"},
+                                        "cant_pob":{"$sum":"$cant_pob"},
+
+                                }},
 
                     ] ,
                     (err,data1)=>{
                     if(err) res.status(500).json({message:"Error al recuperar data",error:err});
 
                     let promedios=[];
-                    let el={};
-                     let cant_aeus=0;
-                    if(data1.length>0){
-                        cant_aeus=data1[0].valor;
-                        el.label = 'Cantidad de AEU'
+                    let informativa=[];
+                    console.log(data1);
+
+                     let cant_aeus=data1[0].cant_ae_u;
+                    if(data1.length>0 && cant_aeus>0){
+                        let el={};
+
+                        el.label='Cantidad de secciones urbanas';
+                        el.valor= data1[0].cant_secc_u;
+                        informativa.push(el);
+
+                        el={};
+                        el.label='Cantidad de areas de empadronamiento urbano';
                         el.valor= cant_aeus;
+                        informativa.push(el);
+                        el={};
+                        el.label='Promedio de manzanas por area de empadronamiento';
+                        el.valor= data1[0].cant_mzs/ cant_aeus;
                         promedios.push(el);
+
+                        el={};
+                        el.label='Promedio de viviendas por area de empadronamiento';
+                        el.valor= data1[0].cant_viv/ cant_aeus;
+                        promedios.push(el);
+                        el={};
+                        el.label='Promedio de Poblacion por area de empadronamiento';
+                        el.valor= data1[0].cant_pob/cant_aeus;
+                        promedios.push(el);
+
                     }
 
                     aeuModel.aggregate(
@@ -98,7 +128,6 @@ let Reporte = {
                             {"$match":match},
                             {$group:{ _id:{"cant_viv":"$cant_viv" } ,"valor":{"$sum":1} }},
                             { "$sort" :  {'_id.cant_viv':1}}
-                            //{"$sort"}
 
                         ],
 
@@ -106,6 +135,8 @@ let Reporte = {
                             if(err) res.status(500).json({message:"Error al recuperar data",error:err});
                             let viviendas=[];
                             let viviendasGraficos=[];
+
+                            console.log('cant_aeus>>',cant_aeus);
                             data2.forEach( (data,index )=>{
                                 let el={},el2={};
                                 el.label=`Area de empadronamiento con  ${data._id.cant_viv} viviendas` ;
@@ -117,7 +148,7 @@ let Reporte = {
                                 viviendas.push(el);
                                 viviendasGraficos.push(el2);
                             });
-                            res.json({reporte:data, estadisticas:{viviendas:viviendas,promedios:promedios } , graficos:{grafico1:viviendasGraficos}});
+                            res.json({reporte:data, estadisticas:{viviendas:viviendas,promedios:promedios ,informativa:informativa} , graficos:{grafico1:viviendasGraficos}});
                     });
 
                     });
@@ -135,46 +166,12 @@ let Reporte = {
         }
 
 
-
         let groupBy={
             _id:{ },
             "cant_viv":{"$sum": 1 },
         };
 
         let sort={};
-
-        /*let project={
-            "ccdi":1,
-            "zona":1,
-            "ruta_web": {'$concat': ["$ccdi","/","$zona",""]}
-        };*/
-
-
-        /*"$project": {
-            "codigo":'$_id.codigo',
-                "descripcion":'$_id.descripcion',
-                "cant_zona_marco": 1,
-                "cant_zona_segm": 1,
-                "porcent_segm":
-            { "$multiply": [ { "$divide": [ "$cant_zona_marco", "$cant_zona_segm"] }, 100 ] }
-
-        }*/
-
-        /*project['ruta_web']=*/
-
-        /*arrayGroupBy.forEach((groupColum,index)=>{
-            if(index<=ambito){
-                groupBy._id[groupColum]='$'+groupColum;
-                //sort[`_id.${groupColum}`]=1;
-                sort[groupColum]=1;
-                project[groupColum]=`$_id.${groupColum}`;
-
-            }
-            else {
-                return;
-            }
-        });
-*/
 
         (ambito==0)? model=subzonaModel:(ambito==1)? model=seccionModel:(ambito==2)? model=aeuModel:true;
 
