@@ -8,6 +8,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var reportesRouter = require('./routes/reportes');
+var calidadRouter = require('./routes/calidad');
 const config = require('./config');
 const mongoose = require('mongoose');
 mongoose.connect(config.mongodb.connect);
@@ -39,6 +40,7 @@ app.use(function(req, res, next) {
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/reportes', reportesRouter);
+app.use('/calidad', calidadRouter);
 
 
 

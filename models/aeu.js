@@ -11,6 +11,8 @@ const AeuSchema = new Schema({
     seccion: String,
     aeu: String,
     cant_viv: Number,
-    ruta_web: String
+    ruta_web: String,
+    flag_calidad: Number,
+
 });
 module.exports = Aeu = mongoose.model('aeu', AeuSchema);

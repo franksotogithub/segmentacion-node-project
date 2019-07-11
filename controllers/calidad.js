@@ -1,5 +1,6 @@
 const zonaModel = require('../models/zona');
 const aeuModel = require('../models/aeu');
+const vivModel = require('../models/vivienda');
 const seccionModel = require('../models/seccion');
 const subzonaModel = require('../models/subzona');
 
@@ -25,23 +26,92 @@ const displayedColumnsCalidad = [
     {data: 'cant_zona_calidad_acep', label: 'Cant. Zonas Aceptadas'},
     {data: 'cant_zona_calidad_rech', label: 'Cant. Zonas Rechazadas'},
     {data: 'porcent_avanc', label: '% Avance'},
+    /*{data: 'seccion', label: 'Seccion'},
+    {data: 'aeu', label: 'Nro. AEU'},*/
+];
+
+const displayedColumnsAEUCalidad = [
+    {data: 'zona', label: 'Zona'},
     {data: 'seccion', label: 'Seccion'},
     {data: 'aeu', label: 'Nro. AEU'},
+    /*{data: 'ind1', label: 'Ind 1'},
+    {data: 'ind2', label: 'Ind 2'},
+    {data: 'ind3', label: 'Ind 3'},
+    {data: 'ind4', label: 'Ind 4'},
+    {data: 'ind5', label: 'Ind 5'},
+    {data: 'ind6', label: 'Ind 6'},
+    {data: 'ind7', label: 'Ind 7'},*/
+    
+];
+
+const displayedColumnsVivCalidad = [
+    {data: 'ord_viv_aeu', label: 'Viv Nº'},
+    {data: 'manzana', label: 'Mz '},
+    {data: 'frente_ord', label: 'Frente Nº'},
+    {data: 'p20', label: 'Tipo Via'},
+    {data: 'p21', label: 'Nombre Via'},
+    {data: 'p22_a', label: 'Nº Puerta'},
+    {data: 'p23', label: 'Block'},
+    {data: 'p24', label: 'Mz Nº'},
+    {data: 'p25', label: 'Lote Nº'},
+    {data: 'p26', label: 'Piso Nº'},
+    {data: 'p27_a', label: 'Int Nº'},
+    {data: 'p28', label: 'Km Nº'},
+    {data: 'jefe_hogar', label: 'Jefe H.'},
+    
 ];
 
 
 
-function getcolumsToDisplayCalidad(data){
+function getcolumsToDisplayCalidad(data,displayedColumnsSource){
     let res={}
     let columsToDisplay=[];
     let displayedColumns=[];
+
+  
     if(data.length>0){
+        
         columsToDisplay=Object.keys(data[0]);
-        columsToDisplay=columsToDisplay.filter(  x=> displayedColumnsCalidad.map(x=>x.data).includes(x) );
-        displayedColumns =displayedColumnsCalidad.filter( x=> { if(columsToDisplay.indexOf( x.data)>=0) return x });
+        
+        columsToDisplay=columsToDisplay.filter(  x=> displayedColumnsSource.map(x=>x.data).includes(x) );
+        
+        displayedColumns =displayedColumnsSource.filter( x=> { if(columsToDisplay.indexOf( x.data)>=0) return x });
+     
     }
     res= {columsToDisplay:columsToDisplay,displayedColumns:displayedColumns};
     return res;
+}
+
+
+function getcolumsToDisplayCalidad2(displayedColumnsSource){
+    let res={}
+    let columsToDisplay=[];
+    let displayedColumns=[];
+    displayedColumns=displayedColumnsSource;
+    columsToDisplay=displayedColumnsSource.map(x=>x.data);
+    res= {columsToDisplay:columsToDisplay,displayedColumns:displayedColumns};
+    return res;
+}
+
+function obtenerTamanioMuestra(totalAeus){
+    let tam=0;
+    if(2<=totalAeus && totalAeus<=25){
+        tam=2;
+    }
+    else if (26<=totalAeus && totalAeus<=150){
+        tam=8;
+    }
+    else if (151<=totalAeus && totalAeus<=280){
+        tam=13;
+    }
+    else if (281<=totalAeus && totalAeus<=500){
+        tam=20;
+    }
+    else if (501<=totalAeus && totalAeus<=1200){
+        tam=32;
+    }
+    return tam;
+
 }
 
 
@@ -170,7 +240,7 @@ let Calidad = {
                 ]
                 ,(err,data)=>{
                     if(err) res.status(500).json({message:"Error al recuperar data",error:err});
-                    let resp=getcolumsToDisplayCalidad(data);
+                    let resp=getcolumsToDisplayCalidad(data,displayedColumnsCalidad);
                     res.json(Object.assign({data:data},resp));
                 });
 
@@ -184,7 +254,7 @@ let Calidad = {
                 ]
                 ,(err,data)=>{
                     if(err) res.status(500).json({message:"Error al recuperar data",error:err});
-                    let resp=getcolumsToDisplayCalidad(data);
+                    let resp=getcolumsToDisplayCalidad(data,displayedColumnsCalidad);
                     res.json(Object.assign({data:data},resp));
 
                 });
@@ -197,14 +267,72 @@ let Calidad = {
     lista_aeu_muestra_calidad(req,res){
 
 
+        let codigo=!(req.params.codigo)?'00':req.params.codigo;
+        aeuModel.find({idzona:codigo,flag_calidad:1},(err,data)=>{
+            if(err) res.status(500).json({message:"Error al recuperar data",error:err});
+           
+            let resp=getcolumsToDisplayCalidad2(displayedColumnsAEUCalidad);
+            res.json(Object.assign({data:data},resp));
+
+        });
+
     },
 
-    detalle_aeu_muestra_calidad(req,res){},
+    viv_aeu_muestra_calidad(req,res){
 
-    generar_muestra_aeu_calidad(req,res){},
+        let codigo=!(req.params.codigo)?'00':req.params.codigo;
+        let ccdi = codigo.substring(0,6);
+        let zona = codigo.substring(6,11);
+        let seccion = codigo.substring(11,14);
+        let aeu = codigo.substring(14,18);
+        console.log('ccdi',ccdi);
+        console.log('zona',zona);
+        console.log('aeu',aeu);
+        
+        vivModel.find({ccdi:ccdi,zona:zona,aeu:aeu},(err,data)=>{
+            if(err) res.status(500).json({message:"Error al recuperar data",error:err});
+            
+            let resp=getcolumsToDisplayCalidad2(displayedColumnsVivCalidad);
+            
+            res.json(Object.assign({data:data},resp));
+        }
+        );
 
-    evaluar_zona_calidad(req,res){},
+    },
+
+    generar_muestra_aeu_calidad(req,res){
+        let idzona=!(req.params.idzona)?'00':req.params.idzona;
+        
+        aeuModel.find({idzona:idzona},(err,data)=>{
+            let totalAeus=data.length;
+            let n=obtenerTamanioMuestra(totalAeus);
+            let k= Math.floor(totalAeus/n);
+            let semilla =  Math.floor(Math.random()*(k-1))+1;
+            let aeuMuestras=[];
+            let aeuMuestra
+
+            for(let i=0;i<n;i++){
+                idAeuMuestra=data[semilla+ i*k]['idaeu'];
+                aeuMuestras.push(idAeuMuestra);
+            }
+
+            aeuModel.updateMany({idzona:idzona},{$set:{'flag_calidad':0}},(err,result)=>{
+
+                if(err) throw err;
+                console.log(result);
+                aeuModel.updateMany({idaeu: {'$in':aeuMuestras}},{'$set':{'flag_calidad':1}},(err,data)=>{
+                    res.status(200).json({'message':'Muestra generada con exito'});
+                });
+            });
+        });
+    },
+
+
+    evaluar_zona_calidad(req,res){
+
+        
+    },
 
 }
 
-module.exports = Reporte;
+module.exports = Calidad;
