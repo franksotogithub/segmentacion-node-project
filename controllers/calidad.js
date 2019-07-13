@@ -78,7 +78,7 @@ function getcolumsToDisplayCalidad(data,displayedColumnsSource){
         displayedColumns =displayedColumnsSource.filter( x=> { if(columsToDisplay.indexOf( x.data)>=0) return x });
      
     }
-    res= {columsToDisplay:columsToDisplay,displayedColumns:displayedColumns};
+    res= {columnsToDisplay:columsToDisplay,displayedColumns:displayedColumns};
     return res;
 }
 
@@ -111,6 +111,20 @@ function obtenerTamanioMuestra(totalAeus){
         tam=32;
     }
     return tam;
+
+}
+
+function obtenerNivelCalidadAceptable(tamMuestra){
+    let ac=0;
+    (tamMuestra==2)? ac=0:
+        (tamMuestra==8)? ac=1:
+            (tamMuestra==13)? ac=2:
+                (tamMuestra==20)? ac=3:
+                    (tamMuestra==32)? ac=5:true;
+
+
+
+    return ac;
 
 }
 
@@ -327,10 +341,66 @@ let Calidad = {
         });
     },
 
-
     evaluar_zona_calidad(req,res){
+        let idzona=!(req.params.idzona)?'00':req.params.idzona;
+        aeuModel.find({idzona:idzona,flag_calidad:1},(err,data)=>{
+            let tamMuestra=data.length;
+            let nivelAc=obtenerNivelCalidadAceptable(tamMuestra);
+            let flag_proc_calidad=0;
+            let cant_defectuosos=0;
 
-        
+            data.map(x=> { if(x.flag_defectuosa>0) cant_defectuosos++; });
+            (cant_defectuosos<=nivelAc)?flag_proc_calidad=1:flag_proc_calidad=2;
+
+            zonaModel.update({idzona:idzona},{flag_proc_calidad:flag_proc_calidad}, (err,data)=>{
+                if(err) throw err;
+                let message="Zona no evaluada";
+                if (flag_proc_calidad==1)message="Zona aceptada";
+                else if(flag_proc_calidad==2) message="Zona rechazada";
+                res.status(200).json({'message':message,flag_proc_calidad:flag_proc_calidad});
+            });
+
+            /*let totalAeus=data.length;
+            let n=obtenerTamanioMuestra(totalAeus);
+            let k= Math.floor(totalAeus/n);
+            let semilla =  Math.floor(Math.random()*(k-1))+1;
+            let aeuMuestras=[];
+            let aeuMuestra
+
+            for(let i=0;i<n;i++){
+                idAeuMuestra=data[semilla+ i*k]['idaeu'];
+                aeuMuestras.push(idAeuMuestra);
+            }
+
+            aeuModel.updateMany({idzona:idzona},{$set:{'flag_calidad':0}},(err,result)=>{
+
+                if(err) throw err;
+                console.log(result);
+                aeuModel.updateMany({idaeu: {'$in':aeuMuestras}},{'$set':{'flag_calidad':1}},(err,data)=>{
+                    res.status(200).json({'message':'Muestra generada con exito'});
+                });
+            });*/
+        });
+
+    },
+
+    actualizar_indicadores(req,res){
+        let idaeu=!(req.params.idzona)?'00':req.params.idaeu;
+        let aeu={
+            ind1:req.body.ind1,
+            ind2:req.body.ind2,
+            ind3:req.body.ind3,
+            ind4:req.body.ind4,
+            ind5:req.body.ind5,
+            ind6:req.body.ind6,
+            ind7:req.body.ind7,
+        }
+
+        aeuModel.findOneAndUpdate({idaeu: idaeu}, {$set:aeu},{new:true},(err,user)=>{
+            if(err)  res.status(500).json({message:"Error al actualiza el usuario",error:err});
+            res.status(200).json({'message':"indicadores  del aeu actualzados"});
+        });
+
     },
 
 }

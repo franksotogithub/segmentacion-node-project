@@ -19,23 +19,20 @@ router.get('/viv_aeu_muestra_calidad/:codigo', (req, res, next) =>{
     
 });
 
-router.get('/generar_muestra_aeu_calidad/:idzona', (req, res, next) =>{
+router.post('/generar_muestra_aeu_calidad/:idzona', (req, res, next) =>{
     CalidadController.generar_muestra_aeu_calidad(req,res);
     
 });
 
-/* GET users listing. */
-/*router.get('/reporte_avance_segm/:ambito/:codigo', (req, res, next) =>{
-    ReporteController.reporte_avance_segm(req,res);
-});
 
-router.get('/reporte_croquis_listado/:ambito/:codigo', (req, res, next) =>{
-    ReporteController.reporte_croquis_listado(req,res);
+router.post('/evaluar_zona_calidad/:idzona', (req, res, next) =>{
+    CalidadController.evaluar_zona_calidad(req,res);
 });
 
 
-router.get('/reporte_avance_calidad/:ambito/:codigo', (req, res, next) =>{
-    ReporteController.reporte_avance_calidad(req,res);
-});*/
+router.put('/actualizar_indicadores/:idaeu', (req, res, next) =>{
+    CalidadController.actualizar_indicadores(req,res);
+});
+
 
 module.exports = router;

@@ -13,6 +13,15 @@ const AeuSchema = new Schema({
     cant_viv: Number,
     ruta_web: String,
     flag_calidad: Number,
+    flag_defectuosa: Number,
+    ind1: Number,
+    ind2: Number,
+    ind3: Number,
+    ind4: Number,
+    ind5: Number,
+    ind6: Number,
+    ind7: Number,
+
 
 });
 module.exports = Aeu = mongoose.model('aeu', AeuSchema);
